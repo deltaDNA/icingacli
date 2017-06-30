@@ -4,6 +4,8 @@ version = "0.1.2"
 authors = ["William Fleming"]
 description = "CLI client for interacting with the icinga api"
 license = "Apache-2.0"
+homepage = "https://github.com/deltaDNA/icingacli"
+repository = "https://github.com/deltaDNA/icingacli"
 
 [dependencies]
 hyper = "0.10"
