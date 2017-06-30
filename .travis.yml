@@ -1,0 +1,10 @@
+os:
+  - linux
+  - osx
+language: rust
+rust:
+  - stable
+  - nightly
+matrix:
+  allow_failures:
+    p rust: nightly

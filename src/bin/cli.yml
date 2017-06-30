@@ -1,0 +1,328 @@
+name: icingacli
+author: William Fleming <wfleming@grumpysysadm.com>
+about: "icingai cli tool"
+args:
+    - config:
+        short: c
+        long: config
+        value_name: FILE
+        help: "Sets a custom config file"
+        takes_value: true
+    - verbose:
+        short: v
+        multiple: true
+        help: "Sets the level of verbosity"
+subcommands:
+    - remove-downtime:
+        about: remove a downtime for service or host
+        long: remove-downtime
+        args:
+            - name:
+                short: n
+                long: name
+                help: name of the downtime
+                takes_value: true
+    - schedule-downtime:
+        about: Set downtime for service or host
+        long: schedule-downtime
+        args:
+            - author:
+                short: a
+                long: author
+                help: Name of the author
+                takes_value: true
+            - comment:
+                short: c
+                long: comment
+                help: Comment text
+                takes_value: true
+            - start-time:
+                short: t 
+                long: start-time
+                help: Start time of the downtime
+                takes_value: true
+            - end-time:
+                short: e
+                long: end-time
+                help: End time of the downtime
+                takes_value: true
+            - child-options:
+                short: o
+                long: fixed
+                help: child options for silencing services of host
+                takes_value: true
+            - host:
+                short: h
+                long: host
+                help: host to schedule downtime on
+                takes_value: true
+            - service:
+                short: s
+                long: service
+                help: service to schedule downtime on
+                takes_value: true
+    - add-comment:
+        about: Adds a comment from an author to services or hosts
+        long: add-comment
+        args:
+            - author:
+                short: a
+                long: author
+                help: Name of the author
+                takes_value: true
+            - comment:
+                short: c
+                long: comment
+                help: Comment text
+                takes_value: true
+            - service:
+                short: s
+                long: service
+                help: service name
+                takes_value: true
+            - host:
+                short: h
+                long: host
+                help: host name
+                takes_value: true
+    - remove-comment:
+        about: removes a comment using the name attribute
+        long: remove-comment
+        args:
+            - name:
+                short: n
+                long: name
+                help: name attribute of comment to be removed
+                takes_value: true
+    - generate-ticket:
+        about: generate a ticket for CSR signing
+        long: generate-ticket
+        args:
+            - cn:
+               short: c
+               long: common-name
+               help: The host's common name for which the ticket should be geenerated
+               takes_value: true
+    - restart:
+        about: restart the icinga process
+        long: restart
+        takes_value: false
+    - shutdown:
+        about: shutdown icinga process
+        long: shutdown
+        takes_value: false
+    - stream:
+        about: "stream events from API"
+        args:
+            - Filter:
+                long: filter
+                help: "apply a filter to your stream"
+                takes_value: true
+            - CheckResult:
+                long: check-result
+                help: "sheck results for hosts and services"
+                takes_value: false
+            - StateChange:
+                long: state-change
+                takes_value: false
+                help: "host/service state changes"
+            - Notification:
+                long: notification
+                takes_value: false
+                help: "notification events including notified users for hosts and services"
+            - AcknowledgementSet:
+                long: acknowledgement-set
+                takes_value: false
+                help: "acknowledgement set on hosts and services"
+            - AcknowledgementCleared:
+                long: acknowledgement-cleared
+                takes_value: false
+                help: "acknowledgement cleared on hosts and services"
+            - CommentAdded:
+                long: comment-added
+                takes_value: false
+                help: "comment added for hosts and services"
+            - CommentRemoved:
+                long: comment-removed
+                takes_value: false
+                help: "comment removed for hosts and services"
+            - DowntimeAdded:
+                long: downtime-added
+                takes_value: false
+                help: "downtime added for hosts and services"
+            - DowntimeRemoved:
+                long: downtime-removed
+                takes_value: false
+                help: "downtime removed for hosts and services"
+            - DowntimeStarted:
+                long: downtime-started
+                takes_value: false
+                help: "downtime started for hosts and services"
+            - Downtime-Triggered:
+                long: downtime-triggered
+                takes_value: false
+                help: "downtime triggered for hosts and services"
+    - problems:
+        about: "print information on icinga problems"
+        args:
+            - Warning:
+                short: w
+                help: "print only warning states"
+                takes_value: false
+            - Critical:
+                short: c
+                help: "print only critical states"
+                takes_value: false
+            - OK:
+                short: o
+                help: "print only ok states"
+                takes_value: false
+    - reschedule-check:
+        about: "reschedule a check for hosts and services"
+        args:
+            - next_check:
+                short: n
+                help: "The next check will be run at this time. If omitted, the current time is used."
+                takes_value: true
+            - force_check:
+                short: f
+                help: "If enabled, the checks are executed regardless of time period restrictions and checks being disabled per object or on a global basis"
+    - remove-acknowledgement:
+        about: remove acknowledgement
+        long: remove-acknowledgement
+        args:
+            - host:
+                short: h
+                long: host
+                takes_value: true
+                help: "the host to remove ack from"
+            - service:
+                short: s
+                long: service
+                takes_value: true
+                help: "the service to remove ack from"
+    - acknowledge-problem:
+        about: ack knowledge problem
+        args:
+            - host:
+                short: h
+                help: "the host to acknowledge"
+                takes_value: true
+            - service:
+                short: s
+                help: "the service to acknowledge"
+                takes_value: true
+            - author:
+                short: a
+                help: "author for ack"
+                required: true
+                takes_value: true
+            - comment:
+                short: c
+                help: "comment for ack"
+                takes_value: true
+                required: true
+            - expiry:
+                short: e
+                help: "expiry for ack"
+                takes_value: true
+            - sticky:
+                short: p
+                help: "will remain until service recovers"
+            - notify:
+                short: n
+                help: "send a notification of ack"
+    - host:
+        about: list host info
+        args:
+            - host:
+                short: h
+                help: "the host you want info on"
+                takes_value: true
+    - group:
+        about: list hosts in group
+        args:
+            - group: 
+                short: g
+                help: "the group of hosts you want"
+                takes_value: true
+    - status:
+        about: "prints status api page"
+        args:
+            - ApiListener:
+                short: a
+                help: "print api listener info"
+                takes_value: false
+            - CIB:
+                short: c
+                help: "print cib info"
+                takes_value: false
+            - CheckResultReader:
+                short: r
+                help: "print check result reader info"
+                takes_value: false
+            - CheckComponent:
+                short: o
+                help: "print check component info"
+                takes_value: false
+            - CompatLogger:
+                short: l
+                takes_value: false
+                help: "print compat logger info"
+            - ExternalCommandListener:
+                short: e
+                help: "print external command info"
+                takes_value: false
+            - FileLogger:
+                short: f
+                help: "print file logger info"
+                takes_value: false
+            - IcingaApplication:
+                short: i
+                help: "print icinga app info"
+                takes_value: false
+            - IdoMysqlConnection:
+                short: m
+                help: "print mysql info"
+                takes_value: false
+            - LiveStatus:
+                short: s
+                help: "print live status info"
+                takes_value: false
+            - NotificationComponent:
+                short: n
+                help: "print notification component info"
+                takes_value: false
+            - StatusDataWriter:
+                short: w
+                help: "print status data info"
+                takes_value: false
+            - SyslogLogger:
+                short: y
+                help: "print syslog info"
+                takes_value: false
+                #    - process-check-result:
+                #        about: "Process a check result for a host or a service"
+                #        args:
+                #            - exit-status:
+                #                short: e
+                #                help: "For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=OK, 1=CRITICAL"
+                #                required: true
+                #                takes_value: true
+                #            - plugin_output:
+                #                short: po
+                #                help: "The plugins main output. Does not contain the performance data"
+                #                required: true
+                #                takes_value: true
+                #            - performance_data:
+                #                short: pd
+                #                help: "The performance data"
+                #                takes_value: true
+                #            - check_command:
+                #                short: cc
+                #                help: "The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument"
+                #                takes_value: true
+                #            - check_source:
+                #                short: cs
+                #                help: "Usually the name of the command_endpoint"
+                #                takes_value: true
