@@ -1,28 +1,21 @@
-use hyper::Client;
-use hyper::net::HttpsConnector;
-use hyper_native_tls::NativeTlsClient;
 use std::io::Read;
 use serde_json;
 use config::Config;
-use hyper::header::{Headers, Authorization, Basic, Accept};
+use reqwest::header::{Headers, Authorization, Basic, Accept};
 use chrono::{Utc, DateTime};
 use chrono::format::ParseError;
 use std::io::BufReader;
 use std::io::BufRead;
+use reqwest::RequestBuilder;
+use reqwest::Client;
 
 pub fn remove_ack(conf: Config, filter: &str) {
     let url = format!("https://{}:{}/v1/actions/remove-acknowledgement?{}",
                       conf.server,
                       conf.port,
                       filter);
-    let client = create_http_client();
-    let mut headers = Headers::new();
-    headers.set(Authorization(Basic {
-                                  username: conf.user,
-                                  password: conf.password,
-                              }));
-    headers.set(Accept::json());
-    match client.post(url.as_str()).headers(headers).send() {
+    let client = post_client(conf, url);
+    match client.send() {
         Ok(mut resp) => {
             let mut body = vec![];
             resp.read_to_end(&mut body).unwrap();
@@ -37,14 +30,8 @@ pub fn remove_downtime(conf: Config, name: &str) {
                       conf.server,
                       conf.port,
                       name);
-    let client = create_http_client();
-    let mut headers = Headers::new();
-    headers.set(Authorization(Basic {
-                                  username: conf.user,
-                                  password: conf.password,
-                              }));
-    headers.set(Accept::json());
-    match client.post(url.as_str()).headers(headers).send() {
+    let client = post_client(conf, url);
+    match client.send() {
         Ok(mut resp) => {
             let mut body = vec![];
             resp.read_to_end(&mut body).unwrap();
@@ -59,14 +46,8 @@ pub fn remove_comment(conf: Config, name: &str) {
                       conf.server,
                       conf.port,
                       name);
-    let client = create_http_client();
-    let mut headers = Headers::new();
-    headers.set(Authorization(Basic {
-                                  username: conf.user,
-                                  password: conf.password,
-                              }));
-    headers.set(Accept::json());
-    match client.post(url.as_str()).headers(headers).send() {
+    let client = post_client(conf, url);
+    match client.send() {
         Ok(mut resp) => {
             let mut body = vec![];
             resp.read_to_end(&mut body).unwrap();
@@ -80,14 +61,8 @@ pub fn shutdown_icinga(conf: Config) {
     let url = format!("https://{}:{}/v1/actions/shutdown-process",
                       conf.server,
                       conf.port);
-    let client = create_http_client();
-    let mut headers = Headers::new();
-    headers.set(Authorization(Basic {
-                                  username: conf.user,
-                                  password: conf.password,
-                              }));
-    headers.set(Accept::json());
-    match client.post(url.as_str()).headers(headers).send() {
+    let client = post_client(conf, url);
+    match client.send() {
         Ok(mut resp) => {
             let mut body = vec![];
             resp.read_to_end(&mut body).unwrap();
@@ -101,14 +76,8 @@ pub fn restart_icinga(conf: Config) {
     let url = format!("https://{}:{}/v1/actions/restart-process",
                       conf.server,
                       conf.port);
-    let client = create_http_client();
-    let mut headers = Headers::new();
-    headers.set(Authorization(Basic {
-                                  username: conf.user,
-                                  password: conf.password,
-                              }));
-    headers.set(Accept::json());
-    match client.post(url.as_str()).headers(headers).send() {
+    let client = post_client(conf, url);
+    match client.send() {
         Ok(mut resp) => {
             let mut body = vec![];
             resp.read_to_end(&mut body).unwrap();
@@ -123,14 +92,8 @@ pub fn stream(conf: Config, filter: &str) {
                       conf.server,
                       conf.port,
                       filter);
-    let client = create_http_client();
-    let mut headers = Headers::new();
-    headers.set(Authorization(Basic {
-                                  username: conf.user,
-                                  password: conf.password,
-                              }));
-    headers.set(Accept::json());
-    match client.post(url.as_str()).headers(headers).send() {
+    let client = post_client(conf, url);
+    match client.send() {
         Ok(mut resp) => {
             let buf = BufReader::new(&mut resp);
             for line in buf.lines() {
@@ -146,18 +109,12 @@ pub fn date_parse(input: &str) -> Result<DateTime<Utc>, ParseError> {
 }
 
 pub fn icinga_problems(conf: Config, filter: &str) {
-    let client = create_http_client();
     let url = format!("https://{}:{}/v1/objects/services?attrs=name&attrs=state&filter=service.state==Service{}",
                       conf.server,
                       conf.port,
                       filter);
-    let mut headers = Headers::new();
-    headers.set(Authorization(Basic {
-                                  username: conf.user,
-                                  password: conf.password,
-                              }));
-    headers.set(Accept::json());
-    match client.get(url.as_str()).headers(headers).send() {
+    let client = get_client(conf, url);
+    match client.send() {
         Ok(mut resp) => {
             let mut body = vec![];
             resp.read_to_end(&mut body).unwrap();
@@ -168,15 +125,9 @@ pub fn icinga_problems(conf: Config, filter: &str) {
 }
 
 pub fn icinga_status(conf: Config, filter: String) {
-    let client = create_http_client();
     let url = format!("https://{}:{}/v1/status/{}", conf.server, conf.port, filter);
-    let mut headers = Headers::new();
-    headers.set(Authorization(Basic {
-                                  username: conf.user,
-                                  password: conf.password,
-                              }));
-    headers.set(Accept::json());
-    match client.get(url.as_str()).headers(headers).send() {
+    let client = get_client(conf, url);
+    match client.send() {
         Ok(mut resp) => {
             let mut body = vec![];
             resp.read_to_end(&mut body).unwrap();
@@ -186,11 +137,26 @@ pub fn icinga_status(conf: Config, filter: String) {
     };
 }
 
-fn create_http_client() -> Client {
-    let mut ssl = NativeTlsClient::new().unwrap();
-    ssl.danger_disable_hostname_verification(true);
-    let connector = HttpsConnector::new(ssl);
-    Client::with_connector(connector)
+fn get_client(conf: Config, url: String) -> RequestBuilder {
+    let c = Client::new().unwrap();
+    let mut headers = Headers::new();
+    headers.set(Authorization(Basic {
+                                  username: conf.user,
+                                  password: conf.password,
+                              }));
+    headers.set(Accept::json());
+    c.get(url.as_str()).headers(headers)
+}
+
+fn post_client(conf: Config, url: String) -> RequestBuilder {
+    let c = Client::new().unwrap();
+    let mut headers = Headers::new();
+    headers.set(Authorization(Basic {
+                                  username: conf.user,
+                                  password: conf.password,
+                              }));
+    headers.set(Accept::json());
+    c.post(url.as_str()).headers(headers)
 }
 
 pub struct Group {
@@ -207,14 +173,8 @@ impl Group {
                           conf.server,
                           conf.port,
                           &self.name);
-        let client = create_http_client();
-        let mut headers = Headers::new();
-        headers.set(Authorization(Basic {
-                                      username: conf.user,
-                                      password: conf.password,
-                                  }));
-        headers.set(Accept::json());
-        match client.get(url.as_str()).headers(headers).send() {
+        let client = get_client(conf, url);
+        match client.send() {
             Ok(mut resp) => {
                 let mut body = vec![];
                 resp.read_to_end(&mut body).unwrap();
@@ -240,14 +200,8 @@ impl Host {
                           conf.server,
                           conf.port,
                           &self.name);
-        let client = create_http_client();
-        let mut headers = Headers::new();
-        headers.set(Authorization(Basic {
-                                      username: conf.user,
-                                      password: conf.password,
-                                  }));
-        headers.set(Accept::json());
-        match client.get(url.as_str()).headers(headers).send() {
+        let client = get_client(conf, url);
+        match client.send() {
             Ok(mut resp) => {
                 let mut body = vec![];
                 resp.read_to_end(&mut body).unwrap();
@@ -278,19 +232,9 @@ impl AddComment {
                           conf.server,
                           conf.port,
                           filter);
-        let client = create_http_client();
-        let mut headers = Headers::new();
-        headers.set(Authorization(Basic {
-                                      username: conf.user,
-                                      password: conf.password,
-                                  }));
-        headers.set(Accept::json());
+        let client = post_client(conf, url);
         let payload = serde_json::to_string(&self).unwrap();
-        match client
-                  .post(url.as_str())
-                  .body(payload.as_str())
-                  .headers(headers)
-                  .send() {
+        match client.body(payload.as_str()).send() {
             Ok(mut resp) => {
                 let mut body = vec![];
                 resp.read_to_end(&mut body).unwrap();
@@ -315,19 +259,9 @@ impl GenerateTicket {
         let url = format!("https://{}:{}/v1/actions/generate-ticket",
                           conf.server,
                           conf.port);
-        let client = create_http_client();
+        let client = post_client(conf, url);
         let payload = serde_json::to_string(&self).unwrap();
-        let mut headers = Headers::new();
-        headers.set(Authorization(Basic {
-                                      username: conf.user,
-                                      password: conf.password,
-                                  }));
-        headers.set(Accept::json());
-        match client
-                  .post(url.as_str())
-                  .body(payload.as_str())
-                  .headers(headers)
-                  .send() {
+        match client.body(payload.as_str()).send() {
             Ok(mut resp) => {
                 let mut body = vec![];
                 resp.read_to_end(&mut body).unwrap();
@@ -374,19 +308,9 @@ impl AcknowledgeProblem {
                           conf.server,
                           conf.port,
                           &self.filter);
-        let client = create_http_client();
+        let client = post_client(conf, url);
         let payload = serde_json::to_string(&self).unwrap();
-        let mut headers = Headers::new();
-        headers.set(Authorization(Basic {
-                                      username: conf.user,
-                                      password: conf.password,
-                                  }));
-        headers.set(Accept::json());
-        match client
-                  .post(url.as_str())
-                  .body(payload.as_str())
-                  .headers(headers)
-                  .send() {
+        match client.body(payload.as_str()).send() {
             Ok(mut resp) => {
                 let mut body = vec![];
                 resp.read_to_end(&mut body).unwrap();
@@ -428,19 +352,9 @@ impl ScheduleDowntime {
                           conf.server,
                           conf.port,
                           filter);
-        let client = create_http_client();
+        let client = post_client(conf, url);
         let payload = serde_json::to_string(&self).unwrap();
-        let mut headers = Headers::new();
-        headers.set(Authorization(Basic {
-                                      username: conf.user,
-                                      password: conf.password,
-                                  }));
-        headers.set(Accept::json());
-        match client
-                  .post(url.as_str())
-                  .body(payload.as_str())
-                  .headers(headers)
-                  .send() {
+        match client.body(payload.as_str()).send() {
             Ok(mut resp) => {
                 let mut body = vec![];
                 resp.read_to_end(&mut body).unwrap();
@@ -464,19 +378,9 @@ impl RescheduleCheck {
         let url = format!("https://{}:{}/v1/actions/reschedule-check",
                           conf.server,
                           conf.port);
-        let client = create_http_client();
+        let client = post_client(conf, url);
         let payload = serde_json::to_string(&self).unwrap();
-        let mut headers = Headers::new();
-        headers.set(Authorization(Basic {
-                                      username: conf.user,
-                                      password: conf.password,
-                                  }));
-        headers.set(Accept::json());
-        match client
-                  .post(url.as_str())
-                  .body(payload.as_str())
-                  .headers(headers)
-                  .send() {
+        match client.body(payload.as_str()).send() {
             Ok(mut resp) => {
                 let mut body = vec![];
                 resp.read_to_end(&mut body).unwrap();
