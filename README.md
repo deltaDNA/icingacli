@@ -13,8 +13,6 @@ OS X & Linux:
 cargo install icingacli
 ```
 
-Currently there is no way to accept self singed certs using hyper http client, so i copy the ca.cert into my trusted authoritys. Hopefully they add an option to this and i can add a flag.
-
 ## Usage
 
 By default it looks for $HOME/.icingacli but you can pass -c with a config path.
