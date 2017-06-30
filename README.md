@@ -1,7 +1,5 @@
 # icingacli
 
-[![Build Status](https://travis-ci.org/sfackler/rust-postgres.svg?branch=master)](https://travis-ci.org/william20111/icingacli) [![Latest Version](https://img.shields.io/crates/v/icingacli.svg)](https://crates.io/crates/icingacli)
-
 CLI client for interacting with the icinga [API](https://docs.icinga.com/icinga2/latest/doc/module/icinga2/toc#!/icinga2/latest/doc/module/icinga2/chapter/icinga2-api)
 
 ![](header.png)
@@ -12,8 +10,6 @@ OS X & Linux:
 ```sh
 cargo install icingacli
 ```
-
-Currently working on rpm/deb builds.
 
 ## Usage
 
