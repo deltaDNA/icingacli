@@ -1,5 +1,7 @@
 # icingacli
 
+[![Latest Version](https://img.shields.io/crates/v/icingacli.svg)](https://crates.io/crates/icingacli)
+
 CLI client for interacting with the icinga [API](https://docs.icinga.com/icinga2/latest/doc/module/icinga2/toc#!/icinga2/latest/doc/module/icinga2/chapter/icinga2-api)
 
 ![](header.png)
@@ -10,6 +12,8 @@ OS X & Linux:
 ```sh
 cargo install icingacli
 ```
+
+Currently there is no way to accept self singed certs using hyper http client, so i copy the ca.cert into my trusted authoritys. Hopefully they add an option to this and i can add a flag.
 
 ## Usage
 
@@ -131,7 +135,7 @@ william@server-1 $ icingacli generate-ticket -c "server-3" | jq
 ## Development setup
 
 ```bash
-william@server-1 $ git clone https://github.com/william20111/icingacli.git
+william@server-1 $ git clone https://github.com/deltaDNA/icingacli.git
 william@server-1 $ cd icingacli
 william@server-1 $ cargo build
 ```
