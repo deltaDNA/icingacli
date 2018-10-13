@@ -173,6 +173,10 @@ subcommands:
                 short: c
                 help: "print only critical states"
                 takes_value: false
+            - Unknown:
+                short: u
+                help: "print only unknown states"
+                takes_value: false
             - OK:
                 short: o
                 help: "print only ok states"
