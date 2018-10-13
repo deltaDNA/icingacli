@@ -141,7 +141,7 @@ fn main() {
         Some("problems") => {
             let matches = matches.subcommand_matches("problems").unwrap();
             if matches.args.is_empty() {
-                api::icinga_problems(conf.clone(), "Critical&service.state==ServiceWarning")
+                api::icinga_problems(conf.clone(), "Critical%7c%7cservice.state==ServiceWarning%7c%7cservice.state==ServiceUnknown")
             } else {
                 for state in &matches.args {
                     api::icinga_problems(conf.clone(), state.0)
